@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Somatic Reset | Full PWA System</title>
+    <link rel="manifest" href="./manifest.json">
+    <style>
+        :root { --bg-dark: #2C3E50; --card-bg: #F4F1EA; --text-main: #2C3E50; --text-muted: #7F8C8D; --accent: #E67E22; --border: #E0D6C8; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; padding: 0 0 120px 0; line-height: 1.6; }
+        header { text-align: center; padding: 2rem 1rem 1rem; color: #ECF0F1; }
+        h1 { font-size: 1.8rem; margin: 0 0 0.5rem; }
+        .lang-toggle { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: #FFF; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; }
+        
+        /* 🔥 遊戲化數據看板 */
+        .stats-bar { max-width: 900px; margin: 0 auto 1.5rem; padding: 0.8rem 1rem; background: rgba(26, 37, 47, 0.8); border-top: 1px solid #34495E; border-bottom: 1px solid #34495E; display: flex; justify-content: space-around; align-items: center; color: #FFF; font-size: 0.95rem; }
+        .stat-item { display: flex; align-items: center; gap: 6px; }
+        .stat-value { font-weight: bold; color: #F1C40F; font-size: 1.1rem; }
+
+        /* 📑 情境分頁導覽列 */
+        .tabs-container { max-width: 900px; margin: 0 auto 1.5rem; padding: 0 1rem; display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 5px; }
+        .tab-btn { flex: 1; min-width: 120px; background: #1A252F; color: #BDC3C7; border: 1px solid #34495E; padding: 10px 12px; border-radius: 12px; cursor: pointer; font-size: 0.9rem; font-weight: 600; text-align: center; transition: all 0.2s; white-space: nowrap; }
+        .tab-btn.active { background: var(--accent); color: #FFF; border-color: var(--accent); box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3); }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 0 1rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .category { font-size: 0.8rem; text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: 0.5rem; }
+        .node-name { font-size: 1.4rem; font-weight: 700; margin: 0 0 1rem 0; display: flex; justify-content: space-between; align-items: center; }
+        .tcm-code { font-size: 0.85rem; background: #E67E22; padding: 3px 8px; border-radius: 6px; color: #FFF; }
+        
+        /* 🖼️ 四宮格切片通用類別 */
+        .illustration-box { width: 100%; height: 200px; background-size: 200% 200%; background-repeat: no-repeat; border-radius: 12px; margin-bottom: 1rem; border: 1px solid var(--border); }
+
+        .desc { font-size: 0.95rem; color: #34495E; margin: 0 0 1rem 0; background: rgba(230, 126, 34, 0.1); padding: 12px; border-radius: 8px; border-left: 3px solid var(--accent); }
+        .desc strong { color: var(--accent); }
+        .timer-btn { background: #2C3E50; color: #FFF; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; transition: all 0.2s; font-size: 1rem; }
+        .timer-btn:hover { background: var(--accent); transform: translateY(-1px); }
+        
+        .zh { display: none; }
+        body.lang-zh .en { display: none; }
+        body.lang-zh .zh { display: inline-block; }
+
+        /* ⏱️ 懸浮計時器 */
+        .timer-bar { position: fixed; bottom: -120px; left: 0; width: 100%; background: #1A252F; color: #FFF; padding: 1rem; box-shadow: 0 -4px 20px rgba(0,0,0,0.6); display: flex; justify-content: space-around; align-items: center; transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100; box-sizing: border-box; }
+        .timer-bar.active { bottom: 0; }
+        .timer-display { font-size: 2rem; font-weight: bold; color: #E67E22; font-variant-numeric: tabular-nums; }
+        .breath-guide { font-size: 0.95rem; color: #BDC3C7; animation: breathe 8s infinite ease-in-out; }
+        @keyframes breathe { 0%, 100% { opacity: 0.4; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1.05); color: #38BDF8; } }
+        .close-timer { background: transparent; border: 1px solid #7F8C8D; color: #FFF; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+    </style>
+</head>
+<body class="lang-zh">
+
+<header>
+    <h1><span class="en">Somatic Reset Protocol</span><span class="zh">3分鐘身心復原卡 (Pro 解鎖版)</span></h1>
+    <button class="lang-toggle" onclick="toggleLanguage()"><span class="en">🌐 Switch to 繁體中文</span><span class="zh">🌐 Switch to English</span></button>
+</header>
+
+<div class="stats-bar">
+    <div class="stat-item">
+        <span>🔥 <span class="en">Daily Streak:</span><span class="zh">連續修復:</span></span>
+        <span class="stat-value" id="streakVal">0</span> 
+        <span><span class="en">Days</span><span class="zh">天</span></span>
+    </div>
+    <div class="stat-item">
+        <span>⚡ <span class="en">Total Sessions:</span><span class="zh">累計重置:</span></span>
+        <span class="stat-value" id="totalVal">0</span> 
+        <span><span class="en">Times</span><span class="zh">次</span></span>
+    </div>
+</div>
+
+<!-- 互動分頁按鈕 -->
+<div class="tabs-container">
+    <button class="tab-btn active" onclick="switchTab('grid1', this)"><span class="en">🧠 Stress Relief</span><span class="zh">🧠 高壓急救</span></button>
+    <button class="tab-btn" onclick="switchTab('grid2', this)"><span class="en">⚡ Energy & Lower Body</span><span class="zh">⚡ 氣血提神</span></button>
+    <button class="tab-btn" onclick="switchTab('grid3', this)"><span class="en">🎯 Focus & Head</span><span class="zh">🎯 腦力專注</span></button>
+    <button class="tab-btn" onclick="switchTab('grid4', this)"><span class="en">🌸 Wellness & Restore</span><span class="zh">🌸 深層修復</span></button>
+</div>
+
+<!-- 動態卡片渲染容器 -->
+<div class="container">
+    <div class="grid" id="cardContainer"></div>
+</div>
+
+<!-- 懸浮底部計時器 -->
+<div class="timer-bar" id="timerBar">
+    <div style="text-align: left;">
+        <div style="font-size: 0.8rem; color: #BDC3C7;" id="activeNode">
+            <span class="en">Pressing: Shenmen (HT7)</span><span class="zh">按壓中：神門穴 (HT7)</span>
+        </div>
+        <div class="breath-guide"><span class="en">🌸 Inhale 4s... Exhale 4s... (Haptic sync)</span><span class="zh">🌸 掌心微震換氣：4秒吸氣... 4秒吐氣...</span></div>
+    </div>
+    <div class="timer-display" id="timeDisplay">03:00</div>
+    <button class="close-timer" onclick="stopTimer()">結束 / Close</button>
+</div>
+
+<script>
+    /* ==========================================
+       1. 16 大穴位 JSON 資料庫 (資料驅動核心)
+       ========================================== */
+    const AcupointDatabase = {
+        grid1: {
+            sprite: '260722.png',
+            points: [
+                { code: 'HT7', nameZh: '神門穴', nameEn: 'Shenmen', catZh: '🧠 睡眠 / 安神', catEn: '🧠 Sleep / Calm', descZh: '仰掌，精準位於<strong>靠小指側的手腕橫紋處</strong>。睡前按壓安神。', descEn: 'On the <strong>pinky side of the wrist crease</strong>. Press to lower anxiety.', pos: 'left top' },
+                { code: 'SI3', nameZh: '後溪穴', nameEn: 'Houxi', catZh: '🦴 頸椎 / 姿勢', catEn: '🦴 Cervical Spine', descZh: '手微握拳，位於<strong>小指側</strong>橫紋盡頭。舒緩頸椎與督脈。', descEn: 'Make a loose fist. On the <strong>pinky side of the hand</strong>. Releases neck stiffness.', pos: 'right top' },
+                { code: 'ST44', nameZh: '內庭穴', nameEn: 'Neiting', catZh: '⚡ 消化 / 腸胃', catEn: '⚡ Digestion', descZh: '足背上，精準落在<strong>第二與第三趾縫之間</strong>。緩解脹氣消化不良。', descEn: 'On top of the foot, strictly <strong>between the 2nd and 3rd toes</strong>.', pos: 'left bottom' },
+                { code: 'LI4', nameZh: '合谷穴', nameEn: 'Hegu', catZh: '🛡️ 鎮痛 / 舒壓', catEn: '🛡️ Systemic Relief', descZh: '手背虎口，位於<strong>大拇指與食指之間</strong>。強力緩解偏頭痛與全身高壓。', descEn: 'On the back of the hand, <strong>between thumb and index finger</strong>. Relieves headaches.', pos: 'right bottom' }
+            ]
+        },
+        grid2: {
+            sprite: '260724-1.png',
+            points: [
+                { code: 'ST36', nameZh: '足三里穴', nameEn: 'Zusanli', catZh: '⚡ 體能 / 腸胃', catEn: '⚡ Vitality / Gut', descZh: '位於<strong>膝眼下三寸，脛骨旁</strong>。強健消化系統，消除下肢疲勞。', descEn: 'Below the knee, by the tibia. Boosts energy and digestive health.', pos: 'left top' },
+                { code: 'SP6', nameZh: '三陰交穴', nameEn: 'Sanyinjiao', catZh: '🌸 循環 / 內分泌', catEn: '🌸 Hormonal Balance', descZh: '位於<strong>內踝尖上三寸，脛骨後緣</strong>。促進下半身循環與代謝。', descEn: '3 cun above inner ankle, border of tibia. Aids circulation and balance.', pos: 'right top' },
+                { code: 'KI1', nameZh: '湧泉穴', nameEn: 'Yongquan', catZh: '🌙 降火 / 深眠', catEn: '🌙 Deep Grounding', descZh: '位於<strong>足底前部凹陷處</strong>。引火歸源，極速消除用腦過度與焦躁。', descEn: 'On the sole of the foot. Grounds nervous energy and aids deep sleep.', pos: 'left bottom' },
+                { code: 'LU7', nameZh: '列缺穴', nameEn: 'Lieque', catZh: '🛡️ 頭頸 / 呼吸', catEn: '🛡️ Head & Neck', descZh: '兩手虎口交叉，<strong>前臂橈側橈骨上方</strong>。緩解初期感冒與頭風痛。', descEn: 'Above the wrist on the thumb side. Relieves headaches and stiffness.', pos: 'right bottom' }
+            ]
+        },
+        grid3: {
+            sprite: '260724-2.png',
+            points: [
+                { code: 'GV20', nameZh: '百會穴', nameEn: 'Baihui', catZh: '🎯 醒腦 / 專注', catEn: '🎯 Mental Clarity', descZh: '位於<strong>頭頂正中，兩耳尖連線中點</strong>。提升腦部供血，擊退腦霧。', descEn: 'Crown of the head. Clears mental fog and lifts energy.', pos: 'left top' },
+                { code: 'GB20', nameZh: '風池穴', nameEn: 'Fengchi', catZh: '👁️ 護眼 / 舒壓', catEn: '👁️ Eye Relief', descZh: '位於<strong>後腦枕骨下，兩條大筋外緣凹陷處</strong>。拯救乾眼與後腦脹痛。', descEn: 'Base of skull, in the depression. Relieves eye strain and tension.', pos: 'right top' },
+                { code: 'GB21', nameZh: '肩井穴', nameEn: 'Jianjing', catZh: '🦴 斜方肌 / 松肩', catEn: '🦴 Shoulder Release', descZh: '位於<strong>肩上，大椎與肩峰連線中點</strong>。極速鬆開緊繃聳肩與滑鼠手。', descEn: 'Top of the shoulder. Releases trapped tension from desk work.', pos: 'left bottom' },
+                { code: 'LI11', nameZh: '曲池穴', nameEn: 'Quchi', catZh: '🔥 清熱 / 降火', catEn: '🔥 Heat Detox', descZh: '位於<strong>肘橫紋外側端，屈肘時凹陷處</strong>。清除體內虛火與皮膚緊繃。', descEn: 'Outer end of elbow crease. Clears excess heat and inflammation.', pos: 'right bottom' }
+            ]
+        },
+        grid4: {
+            sprite: '260724-3.png',
+            points: [
+                { code: 'CV4', nameZh: '關元穴', nameEn: 'Guanyuan', catZh: '🔋 儲能 / 培元', catEn: '🔋 Core Vitality', descZh: '位於<strong>下腹部，前正中線上，臍下三寸</strong>。充實丹田能量，改善虛寒。', descEn: 'Lower abdomen, 3 cun below navel. Restores core constitutional energy.', pos: 'left top' },
+                { code: 'SP10', nameZh: '血海穴', nameEn: 'Xuehai', catZh: '🌸 活血 / 循行', catEn: '🌸 Blood Circulation', descZh: '位於<strong>大腿內側，髕骨內上緣上二寸</strong>。促進氣血通暢，改善僵硬瘀滯。', descEn: 'Inner thigh, above knee. Improves blood flow and vitality.', pos: 'right top' },
+                { code: 'KI3', nameZh: '太溪穴', nameEn: 'Taixi', catZh: '💧 滋陰 / 腎氣', catEn: '💧 Deep Renewal', descZh: '位於<strong>內踝尖與跟腱之間的凹陷處</strong>。根本調理長期熬夜的慢性疲勞。', descEn: 'Between inner ankle and Achilles tendon. Replenishes adrenal exhaustion.', pos: 'left bottom' },
+                { code: 'SP9', nameZh: '陰陵泉穴', nameEn: 'Yinlingquan', catZh: '🌊 祛濕 / 輕盈', catEn: '🌊 Detox / Drainage', descZh: '位於<strong>小腿內側，脛骨內側髁下方凹陷處</strong>。消除午後水腫與沉重感。', descEn: 'Inner lower leg, below knee joint. Drains dampness and reduces swelling.', pos: 'right bottom' }
+            ]
+        }
+    };
+
+    /* ==========================================
+       2. UI 渲染與分頁切換邏輯
+       ========================================== */
+    function renderCards(gridKey) {
+        const container = document.getElementById('cardContainer');
+        const data = AcupointDatabase[gridKey];
+        container.innerHTML = '';
+
+        data.points.forEach(pt => {
+            const cardHtml = `
+                <div class="card">
+                    <div>
+                        <div class="category"><span class="en">${pt.catEn}</span><span class="zh">${pt.catZh}</span></div>
+                        <div class="node-name">
+                            <span><span class="en">${pt.nameEn}</span><span class="zh">${pt.nameZh}</span> (${pt.code})</span>
+                            <span class="tcm-code">${pt.code}</span>
+                        </div>
+                        <div class="illustration-box" style="background-image: url('${data.sprite}'); background-position: ${pt.pos};"></div>
+                        <p class="desc"><span class="en">${pt.descEn}</span><span class="zh">${pt.descZh}</span></p>
+                    </div>
+                    <button class="timer-btn" onclick="startTimer('${pt.nameEn} (${pt.code})', '${pt.nameZh} (${pt.code})')">
+                        <span class="en">⏱️ Start 3-Min Timer</span><span class="zh">⏱️ 開始 3 分鐘按壓計時</span>
+                    </button>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', cardHtml);
+        });
+    }
+
+    function switchTab(gridKey, btnElement) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        btnElement.classList.add('active');
+        renderCards(gridKey);
+    }
+
+    function toggleLanguage() {
+        document.body.classList.toggle('lang-zh');
+        document.body.classList.toggle('lang-en');
+    }
+
+    /* ==========================================
+       3. 遊戲化打卡與硬體 API 互動
+       ========================================== */
+    function getLocalDateStr(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+    function initStats() {
+        let streak = parseInt(localStorage.getItem('sr_streak') || '0');
+        let total = parseInt(localStorage.getItem('sr_total') || '0');
+        let lastDate = localStorage.getItem('sr_last_date');
+        
+        if (lastDate) {
+            const today = new Date();
+            const yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+            
+            if (lastDate !== getLocalDateStr(today) && lastDate !== getLocalDateStr(yesterday)) {
+                streak = 0;
+                localStorage.setItem('sr_streak', '0');
+            }
+        }
+        document.getElementById('streakVal').innerText = streak;
+        document.getElementById('totalVal').innerText = total;
+    }
+
+    function recordCompletion() {
+        const todayStr = getLocalDateStr(new Date());
+        let streak = parseInt(localStorage.getItem('sr_streak') || '0');
+        let total = parseInt(localStorage.getItem('sr_total') || '0');
+        let lastDate = localStorage.getItem('sr_last_date');
+
+        total += 1;
+        localStorage.setItem('sr_total', total.toString());
+
+        if (lastDate !== todayStr) {
+            streak += 1;
+            localStorage.setItem('sr_streak', streak.toString());
+            localStorage.setItem('sr_last_date', todayStr);
+        }
+        initStats();
+        return { streak, total };
+    }
+
+    let audioCtx = null;
+    function playHealingTone(freq = 528, duration = 1.5) {
+        try {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        } catch(e) { console.log('音效播放受阻:', e); }
+    }
+
+    let wakeLock = null;
+    async function requestWakeLock() {
+        try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } 
+        catch (err) { console.log('無法鎖定螢幕常亮:', err); }
+    }
+
+    function releaseWakeLock() {
+        if (wakeLock !== null) wakeLock.release().then(() => { wakeLock = null; });
+    }
+
+    let timerInterval;
+    function startTimer(enName, zhName) {
+        clearInterval(timerInterval);
+        let duration = 180; // 3分鐘 = 180秒 (測試時可暫時改為 8 秒)
+        
+        requestWakeLock();
+        playHealingTone(528, 1.5); 
+        if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]); 
+
+        document.getElementById('activeNode').innerHTML = 
+            `<span class="en">Pressing: ${enName}</span><span class="zh">按壓中：${zhName}</span>`;
+        document.getElementById('timerBar').classList.add('active');
+        
+        updateDisplay(duration);
+        timerInterval = setInterval(() => {
+            duration--;
+            updateDisplay(duration);
+            if (duration > 0 && duration % 4 === 0 && 'vibrate' in navigator) navigator.vibrate(30);
+
+            if (duration <= 0) {
+                clearInterval(timerInterval);
+                releaseWakeLock();
+                playHealingTone(528, 2.5);
+                setTimeout(() => playHealingTone(660, 2.0), 300);
+                if ('vibrate' in navigator) navigator.vibrate([300, 100, 300, 100, 500]);
+                
+                const stats = recordCompletion();
+                setTimeout(() => {
+                    alert(`🎉 恭喜完成 3 分鐘身心重置！\n🔥 目前已連續修復：${stats.streak} 天\n⚡ 累計修復總共：${stats.total} 次\n\n請喝杯溫開水促進經絡代謝！`);
+                    stopTimer();
+                }, 500);
+            }
+        }, 1000);
+    }
+
+    function updateDisplay(seconds) {
+        let mins = Math.floor(seconds / 60);
+        let secs = seconds % 60;
+        document.getElementById('timeDisplay').innerText = 
+            (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+    }
+
+    function stopTimer() {
+        clearInterval(timerInterval);
+        releaseWakeLock();
+        document.getElementById('timerBar').classList.remove('active');
+    }
+
+    // 初始化：載入頁面時預設渲染第一組 (高壓急救組) 並讀取打卡紀錄
+    window.addEventListener('DOMContentLoaded', () => {
+        initStats();
+        renderCards('grid1');
+    });
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js');
+    }
+</script>
+</body>
+</html>

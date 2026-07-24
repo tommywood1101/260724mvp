@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Somatic Reset | 3-Min Bio-hacking Nodes</title>
+    <link rel="manifest" href="./manifest.json">
+    <style>
+        :root {
+            --bg-dark: #2C3E50;
+            --card-bg: #F4F1EA;
+            --text-main: #2C3E50;
+            --text-muted: #7F8C8D;
+            --accent: #E67E22;
+            --border: #E0D6C8;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; padding: 0; line-height: 1.6; }
+        header { text-align: center; padding: 3rem 1rem 2rem; color: #ECF0F1; }
+        h1 { font-size: 2rem; margin: 0 0 0.5rem; font-weight: 700; }
+        .subtitle { color: #BDC3C7; font-size: 1.1rem; max-width: 600px; margin: 0 auto 1.5rem; }
+        .lang-toggle { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: #FFF; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
+        .container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; position: relative; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .category { font-size: 0.8rem; text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: 0.5rem; }
+        .node-name { font-size: 1.4rem; font-weight: 700; margin: 0 0 1rem 0; display: flex; justify-content: space-between; align-items: center; }
+        .tcm-code { font-size: 0.85rem; background: #E67E22; padding: 3px 8px; border-radius: 6px; color: #FFF; }
+        
+        .illustration-box { width: 100%; height: 220px; background-image: url('260722.png'); background-size: 200% 200%; background-repeat: no-repeat; border-radius: 12px; margin-bottom: 1rem; border: 1px solid var(--border); }
+        .bg-shenmen { background-position: left top; }
+        .bg-houxi   { background-position: right top; }
+        .bg-neiting { background-position: left bottom; }
+        .bg-hegu    { background-position: right bottom; }
+
+        .desc { font-size: 0.95rem; color: #34495E; margin: 0; background: rgba(230, 126, 34, 0.1); padding: 12px; border-radius: 8px; border-left: 3px solid var(--accent); }
+        .desc strong { color: var(--accent); }
+        .zh { display: none; }
+        body.lang-zh .en { display: none; }
+        body.lang-zh .zh { display: inline-block; }
+
+        /* 🔒 鎖定與名單收集遮罩特效 */
+        .locked-wrapper { position: relative; grid-column: 1 / -1; margin-top: 1rem; }
+        .locked-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; filter: blur(8px); pointer-events: none; opacity: 0.6; }
+        .optin-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #FFF; padding: 2.5rem 2rem; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); text-align: center; max-width: 450px; width: 85%; z-index: 10; border: 3px solid var(--accent); }
+        .optin-box h3 { font-size: 1.5rem; margin: 0 0 0.5rem; color: var(--bg-dark); }
+        .optin-box p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; }
+        .optin-box input[type="email"] { width: 100%; padding: 12px 16px; border: 2px solid #BDC3C7; border-radius: 8px; font-size: 1rem; margin-bottom: 1rem; box-sizing: border-box; }
+        .optin-box button { width: 100%; background: var(--accent); color: #FFF; border: none; padding: 14px; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .optin-box button:hover { background: #D35400; }
+    </style>
+</head>
+<body class="lang-zh">
+
+<header>
+    <h1><span class="en">Somatic Reset Protocol</span><span class="zh">3分鐘身心復原卡</span></h1>
+    <p class="subtitle"><span class="en">Bio-electric switches for high-performance recovery.</span><span class="zh">可愛溫暖風格的現代穴位重置指南。</span></p>
+    <button class="lang-toggle" onclick="toggleLanguage()"><span class="en">🌐 Switch to 繁體中文</span><span class="zh">🌐 Switch to English</span></button>
+</header>
+
+<div class="container">
+    <div class="grid">
+        <!-- 開放體驗卡片：神門穴 -->
+        <div class="card">
+            <div class="category"><span class="en">🧠 Sleep / Calm</span><span class="zh">🧠 睡眠 / 安神</span></div>
+            <div class="node-name"><span class="en">Shenmen (HT7)</span><span class="zh">神門穴</span><span class="tcm-code">HT7</span></div>
+            <div class="illustration-box bg-shenmen"></div>
+            <p class="desc"><span class="en">On the <strong>pinky side of the wrist crease</strong>.</span><span class="zh">仰掌，精準位於<strong>靠小指側的手腕橫紋處</strong>的凹陷中。</span></p>
+        </div>
+    </div>
+
+    <!-- 鎖定區域與名單收集表單 -->
+    <div class="locked-wrapper">
+        <div class="optin-box">
+            <h3><span class="en">Unlock 4 Bio-Switches & Timers</span><span class="zh">解鎖完整 4 大穴位與計時器</span></h3>
+            <p><span class="en">Enter your email to instantly access the full PWA system with guided breathing timers.</span><span class="zh">輸入 Email 即可免費解鎖後溪、內庭、合谷穴完整圖解與 3 分鐘深層呼吸引導計時器。</span></p>
+            <form id="leadForm">
+                <input type="email" id="userEmail" placeholder="您的 Email 地址 / Your Email" required>
+                <button type="submit"><span class="en">Unlock Full Access Now</span><span class="zh">立即免費解鎖完整版</span></button>
+            </form>
+        </div>
+
+        <!-- 模糊處理的卡片背景 -->
+        <div class="locked-grid">
+            <div class="card"><div class="category">🦴 Cervical Spine</div><div class="node-name">後溪穴 (SI3)</div><div class="illustration-box bg-houxi"></div><p class="desc">手微握拳，位於小指側橫紋盡頭。</p></div>
+            <div class="card"><div class="category">⚡ Digestion</div><div class="node-name">內庭穴 (ST44)</div><div class="illustration-box bg-neiting"></div><p class="desc">足背上，精準落在第二與第三趾縫之間。</p></div>
+            <div class="card"><div class="category">🛡️ Systemic Relief</div><div class="node-name">合谷穴 (LI4)</div><div class="illustration-box bg-hegu"></div><p class="desc">手背虎口，位於大拇指與食指之間。</p></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleLanguage() {
+        document.body.classList.toggle('lang-zh');
+        document.body.classList.toggle('lang-en');
+    }
+
+    document.getElementById('leadForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = document.getElementById('userEmail').value;
+        const webhookUrl = 'https://hook.us2.make.com/rlavd3cudnlgq46bpi1ink5br7e94xxm'; // 若已綁定 Make.com 請替換此網址
+        
+        if(webhookUrl === 'YOUR_MAKE_WEBHOOK_URL') {
+            alert('系統提示：即將帶您進入完整解鎖版應用程式！');
+            window.location.href = './app.html';
+            return;
+        }
+
+        fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, timestamp: new Date().toISOString() })
+        }).then(() => {
+            alert('解鎖成功！為您導向完整數位對策庫。');
+            window.location.href = './app.html';
+        }).catch(() => {
+            window.location.href = './app.html';
+        });
+    });
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js');
+    }
+</script>
+</body>
+</html>
